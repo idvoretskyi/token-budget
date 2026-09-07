@@ -81,7 +81,9 @@ func json(_ data: Data) -> [String: Any]? {
 
 // Check ancestors too: a regular-looking leaf can live inside a linked directory.
 func fileType(_ url: URL) throws -> FileAttributeType {
-    var current = url.standardizedFileURL
+    // standardizedFileURL can rewrite /private/var to the /var symlink on
+    // macOS, falsely rejecting even an already-canonical temporary directory.
+    var current = url
     while true {
         let attributes: [FileAttributeKey: Any]
         do { attributes = try FileManager.default.attributesOfItem(atPath: current.path) }
