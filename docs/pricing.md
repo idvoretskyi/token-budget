@@ -12,11 +12,12 @@ for input, cache reads, cache writes, and output. Record where and when you chec
 a rate. There is no automatic refresh or guarantee that a user-entered rate matches
 current provider terms.
 
-Pricing should use the applicable profile effective at the event timestamp, not
-apply today's rate blindly to historical usage. Keep distinct effective dates
-when rates change. Missing applicable profiles, conflicting entries, and currency
-mismatches require explicit handling; a missing price is not a zero price. The
-model has no exchange-rate feed, account discount, or subscription entitlement.
+Pricing selects the latest profile effective at or before the event timestamp,
+matching source, provider, model, and budget currency exactly. Today's rate is not
+applied blindly to historical usage. Keep distinct effective dates when rates
+change. Duplicate scope/currency/effective instants are rejected. Missing applicable
+profiles, including currency mismatches, count as unpriced usage, not zero cost.
+The model has no exchange-rate feed, account discount, or subscription entitlement.
 
 For disjoint normalized token counts, the estimate is:
 
@@ -45,11 +46,60 @@ Periods are weekly or monthly in the stored `timeZoneID`, independent of later
 system time-zone changes. Weekly configuration includes weekday and reset time;
 monthly periods use the first day of the month and configured reset time, not a
 rolling 30-day window. The initial model defaults to UTC, Monday, and 00:00.
-Reset calculations must be calendar-aware, including daylight-saving transitions;
-the exact boundary behavior needs tests rather than fixed-duration assumptions.
+The engine uses the Gregorian calendar and resolves each reset's civil day
+independently, with these explicit daylight-saving policies:
+
+- A nonexistent reset time moves forward to the next valid wall-clock time
+  (`.nextTime`). For example, a skipped 02:30 reset becomes 03:00, not 03:30.
+- A repeated reset time uses its first occurrence (`.first`), with no second reset
+  when the clock repeats that time.
+- A midnight gap affects only the relevant reset day; it must not shift unrelated
+  weekly or monthly boundaries.
+- Windows include their start and exclude their end. At an exact reset instant,
+  the new period begins. Future events are excluded from the current estimate.
+- Durations follow calendar boundaries, not fixed seconds: a DST-transition week
+  may have 167 or 169 hours, and calendar months vary in length.
+
+Portable regression tests cover these policies, subsecond boundaries, leap years,
+year rollover, and stored-zone reset times. They do not replace native validation.
 
 Changing a budget, scope, time zone, or profile changes the interpretation of the
 estimate. It does not change the provider's billing period or past invoices.
+
+## Forecast Limitation
+
+The core can extrapolate `spent * periodDuration / elapsedDuration` only when the
+user-confirmed coverage start is at or before the period start, at least 86,400
+seconds have elapsed, and the summary has no warnings. It uses actual elapsed and
+period durations, including DST, rather than a fixed-length week or month.
+
+**Forecasts are currently effectively disabled for real adapter imports.** The app
+passes all importer warnings into the summary, and both adapters always emit the
+notice that local records do not prove complete billing coverage. That notice
+alone suppresses a forecast, even with confirmed coverage and fully priced usage.
+There is no override or informational-warning exception for forecasting. The core
+formula and its tests are not evidence of a usable end-to-end forecasting feature.
+
+## Optional Alerts
+
+Notifications are off by default. Enabling them and applying settings requests
+macOS alert/sound permission. `BudgetAlerts` watches eligible scan summaries for
+new crossings of 80% and 100% of the configured budget, using observed priced spend,
+not a forecast, bill, or remaining allowance.
+
+The first eligible scan after startup, configuration/period changes, or a rejected
+summary establishes a silent baseline. Already reached thresholds are consumed
+without historical alerts. Missing prices, failed scans, unavailable estimates,
+and non-allowlisted warnings suppress alerts and reset that baseline. Unlike the
+forecast policy, alerts allow an exact list of informational coverage and
+attribution notices; unknown warnings fail closed.
+
+Threshold records are persisted in the local ledger for the budget, period,
+enabled sources, selection fingerprint, and threshold. They are recorded before
+delivery to prevent later floods. Denied permission, a crash, or delivery failure
+can therefore lose an alert rather than retry it. Repeated scans and downward
+corrections do not reissue consumed thresholds. Notifications are best-effort;
+native permission and delivery behavior remain unvalidated.
 
 ## Incomplete Estimates
 

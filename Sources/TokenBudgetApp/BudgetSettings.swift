@@ -135,7 +135,10 @@ struct BudgetSettings: View {
                     }
                     Text("Forecast is hidden unless you confirm coverage. Local logs alone cannot establish complete history. Recheck this confirmation after changing paths or included models.")
                         .font(.caption).foregroundStyle(.secondary)
-                    Text("80% and 100% notifications are not implemented in this version. No notification permissions are requested and no historical alerts are sent.")
+                    Toggle("Notify at 80% and 100% of the recorded budget estimate", isOn: $draft.notificationsEnabled)
+                    Text("Permission is requested only when you enable notifications and apply. The first successful scan after setup or changes establishes a silent baseline. Alerts use observed priced spend, not complete billing usage or an allowance; missing prices and import problems suppress alerts.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Text(store.notificationStatus)
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -257,8 +260,10 @@ struct BudgetSettings: View {
         }
         draft.budget.amount = value
         draft.budget.currency = currency
-        draft.notificationsEnabled = false
         draft.coverageStart = confirmedCoverage ? coverageStart : nil
-        if store.save(draft) { message = "Settings saved. Enabled sources are being refreshed." }
+        let enablingNotifications = draft.notificationsEnabled && !store.settings.notificationsEnabled
+        if store.save(draft, requestNotificationPermission: enablingNotifications) {
+            message = "Settings saved. Enabled sources are being refreshed."
+        }
     }
 }

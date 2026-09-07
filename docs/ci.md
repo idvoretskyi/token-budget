@@ -1,8 +1,20 @@
 # CI Environment
 
-The workflow tests portable logic on Linux and tests, builds, packages, and verifies
-a development app on macOS. Adding this workflow does not demonstrate a successful
-hosted run. It does not launch the UI or replace interactive real-Mac validation.
+The workflow is configured to test portable logic on Linux and test, build,
+package, and verify a development app on macOS. It does not launch the UI or
+replace interactive real-Mac validation.
+
+## Validation Snapshot
+
+Reported on **2026-09-07**: 76 portable tests passed locally, and macOS CI
+compilation passed. All adapter tests in that macOS run were skipped due to a
+path-symlink bug. A fix is in progress; adapter validation requires a rerun in which
+the tests actually execute. Compilation success is not a passing native adapter
+suite, and does not establish that subsequent source changes have been compiled.
+
+Native packaging, code-signature verification, and artifact creation are **not yet
+confirmed**. There has been no interactive real-Mac validation. These results are
+a reported snapshot, not a new test run performed for this documentation update.
 
 ## Runner Selection
 
@@ -37,15 +49,19 @@ an unverified example:
 
 | Action | Queried ref | Verified commit |
 | --- | --- | --- |
-| `actions/checkout` | `v4` | `11d5960a326750d5838078e36cf38b85af677262` |
+| `actions/checkout` | `v5` | `fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09` |
 | `actions/upload-artifact` | `v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
 
 To review future updates:
 
 ```bash
-gh api repos/actions/checkout/commits/v4 --jq .sha
+gh api repos/actions/checkout/commits/v5 --jq .sha
 gh api repos/actions/upload-artifact/commits/v4 --jq .sha
 ```
+
+Checkout was updated to this verified v5 commit to avoid its Node 20 deprecation
+warning; the pinned action declares `runs.using: node24`. This does not imply that
+every other action uses Node 24: the upload-artifact pin remains unchanged.
 
 Tags can move; review the upstream changes before replacing a pin. Container
 digest pins also need deliberate updates to receive toolchain and OS fixes.

@@ -24,19 +24,42 @@ included in diagnostic output.
 
 The current app stores settings, scan status, and a SQLite usage ledger in its
 `TokenBudget` Application Support directory. It requests owner-only directory
-permissions and limits settings and scan-status file permissions. These code
-paths have not been validated on a real Mac.
+permissions and limits settings, scan-status, and database-file permissions. Scan
+status includes the configured source path. The ledger also stores notification
+deduplication keys. These code paths have not been interactively validated on a
+real Mac.
 
 Local-only is not a claim of application-level encryption, secure erasure,
 sandboxing, or a completed security audit. OS permissions, backups, and other local
-processes can affect confidentiality. Notifications are not implemented and no
-notification permission is requested. Any future notification visibility needs
-separate privacy review.
+processes can affect confidentiality.
 
 Disabling a source excludes it from estimates but retains ledger history; a failed
 scan also retains previously recorded usage. Neither operation erases backups.
 Data-removal behavior and storage lifecycle need implementation-specific
 verification before being advertised as a privacy guarantee.
+
+## Optional Notifications
+
+Notifications are disabled by default. The app requests macOS alert and sound
+permission only when you enable them and apply settings, not merely at startup.
+These are local OS notifications, without a remote push service or runtime network
+request. Delivery and permission behavior still need interactive Mac validation.
+
+Notification titles and bodies contain only the crossed threshold percentage and
+generic estimate/incomplete-history disclaimers. They contain no private event,
+session, source/provider/model identifiers, paths, prompts, actual spend amounts,
+or budget configuration keys. Each OS request uses a random UUID; the internal
+deduplication key is not sent in the notification payload.
+
+The local ledger's deduplication keys do include budget configuration, period,
+enabled sources, and a selection fingerprint. The fingerprint is not encryption
+or a privacy boundary. Treat that local state as sensitive metadata.
+
+A visible notification still reveals use of the app and a budget-threshold
+crossing to anyone who can see it, including on the lock screen if macOS permits.
+Use macOS notification settings to control previews and visibility. Disabling the
+app preference removes pending requests, not already delivered notifications or
+ledger records; it is not a data-erasure operation.
 
 ## Safe Diagnostics
 

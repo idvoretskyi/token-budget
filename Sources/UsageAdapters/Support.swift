@@ -81,16 +81,17 @@ func json(_ data: Data) -> [String: Any]? {
 
 // Check ancestors too: a regular-looking leaf can live inside a linked directory.
 func fileType(_ url: URL) throws -> FileAttributeType {
-    // standardizedFileURL can rewrite /private/var to the /var symlink on
-    // macOS, falsely rejecting even an already-canonical temporary directory.
-    var current = url
+    // Walk literal path strings. Foundation URL normalization can rewrite
+    // /private/var to /var, introducing a symlink into a canonical Mac path.
+    var current = url.path
     while true {
         let attributes: [FileAttributeKey: Any]
-        do { attributes = try FileManager.default.attributesOfItem(atPath: current.path) }
+        do { attributes = try FileManager.default.attributesOfItem(atPath: current) }
         catch { throw UsageImportError.unavailable }
         if attributes[.type] as? FileAttributeType == .typeSymbolicLink { return .typeSymbolicLink }
-        let parent = current.deletingLastPathComponent()
-        if parent.path == current.path { break }
+        guard let slash = current.lastIndex(of: "/") else { break }
+        let parent = slash == current.startIndex ? "/" : String(current[..<slash])
+        if parent == current || parent.isEmpty { break }
         current = parent
     }
     do {

@@ -6,10 +6,13 @@ network requests, telemetry, backend, or API credentials.
 
 ## Experimental Status
 
-This is an early MVP, not a production-validated financial tool. **No real-Mac
-validation has been completed.** Native builds, packaging, permissions, menu bar
-behavior, and future notifications still need verification. CI configuration is not
-evidence of a successful CI run or an interactive Mac test.
+This is an early MVP, not a production-validated financial tool. **No interactive
+real-Mac validation has been completed.** The reported validation snapshot on
+2026-09-07 is 76 portable tests passing locally and macOS CI compilation passing.
+All adapter tests in that macOS run were skipped because of a path-symlink bug;
+the fix and a rerun are still pending verification. Native packaging and signature
+verification are not confirmed. Permissions, menu bar behavior, and notification
+delivery still need interactive testing. See [CI status](docs/ci.md).
 
 Estimates are not provider bills, subscription allowances, prepaid balances, or
 enforced spending caps. Missing history, unsupported log formats, unknown prices,
@@ -27,11 +30,18 @@ not affiliated with OpenCode, OpenAI, or any model provider.
   provenance. There is no automatic price feed or provider account lookup.
 - Treat refresh as a full-rescan MVP. Incremental imports and broad format
   compatibility are not promised.
+- Optionally notify at new 80% and 100% crossings of the recorded, priced budget
+  estimate, after a silent baseline scan. These are not billing or allowance alerts.
 
-The settings model starts with no enabled sources, selections, or prices.
-Notifications are not implemented in this version; no notification permission is
-requested. Local records cannot prove complete billing-period coverage; any
-coverage start is a user assertion, not independent verification.
+The settings model starts with no enabled sources, selections, or prices, and
+notifications off. Notification permission is requested only when enabling the
+preference and applying settings. Local records cannot prove complete billing-period
+coverage; any coverage start is a user assertion, not independent verification.
+
+Forecasting is currently effectively disabled for real adapter imports: every
+importer warning suppresses it, including the coverage notice both adapters always
+emit. Confirming coverage does not override this conservative limitation. See
+[pricing and alert semantics](docs/pricing.md).
 
 ### Initial Setup
 
@@ -43,6 +53,9 @@ coverage start is a user assertion, not independent verification.
    and provenance. Enter an explicit zero only for a category known to be free.
 5. Apply settings and review import warnings and unpriced usage. Only confirm
    history coverage if you can independently justify it for the selected scope.
+6. Optionally enable threshold notifications and apply settings to request macOS
+   permission. The first eligible scan establishes a silent baseline, not historical
+   alerts. Missing prices and import problems suppress alerts.
 
 ## Build and Test
 

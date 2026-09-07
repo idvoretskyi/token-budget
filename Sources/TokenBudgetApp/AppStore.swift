@@ -33,6 +33,9 @@ final class AppStore {
     private var scanTask: Task<ScanResult, Error>?
     private var refreshTimer: Task<Void, Never>?
     private var refreshQueued = false
+    private let notifications = BudgetNotifications()
+
+    var notificationStatus: String { notifications.status }
 
     init() {
         do {
@@ -66,6 +69,7 @@ final class AppStore {
         } catch {
             self.error = "Private storage or saved settings could not be opened. Check access to Application Support/TokenBudget, then restart. Existing files have not been replaced."
         }
+        notifications.configure(settings)
     }
 
     var discoveredSelections: [UsageSelection] {
@@ -118,7 +122,7 @@ final class AppStore {
         }
     }
 
-    func save(_ proposed: AppSettings) -> Bool {
+    func save(_ proposed: AppSettings, requestNotificationPermission: Bool = false) -> Bool {
         guard let settingsURL else { return false }
         do {
             // Check calendar/timezone configuration before changing persisted settings.
@@ -131,6 +135,7 @@ final class AppStore {
                 if oldPath != newPath { statuses[source] = SourceStatus() }
             }
             settings = proposed
+            notifications.configure(proposed, requestPermission: requestNotificationPermission)
             error = nil
             recompute()
             refresh()
@@ -149,6 +154,7 @@ final class AppStore {
         }
         isScanning = true
         let configuration = settings
+        let notificationRevision = notifications.revision
         let oldStatuses = statuses
         // Only this detached task imports. Requests during a scan coalesce into one follow-up.
         let task = Task.detached(priority: .utility) { () throws -> ScanResult in
@@ -208,6 +214,10 @@ final class AppStore {
                 self.scanWarnings = ["The usage ledger could not be read. The previous estimate is retained and may be stale."]
             }
             self.recompute()
+            await self.notifications.observe(summary: self.summary, settings: self.settings,
+                                             canShowEstimate: self.canShowEstimate,
+                                             successfulScan: (try? result.get()) != nil,
+                                             revision: notificationRevision, ledger: ledger)
             if self.refreshQueued {
                 self.refreshQueued = false
                 self.refresh()

@@ -44,7 +44,33 @@ The current app stores `settings.json`, `scan-status.json`, and `usage.sqlite` i
 its `TokenBudget` subdirectory of the user's Application Support directory. It
 merges imported events into the local ledger, retains history when a source is
 disabled or a scan fails, and coalesces refresh requests during an active scan.
-Notifications are not implemented; the settings UI states this explicitly.
+While running, the app requests refreshes every 60 seconds; this is polling, not
+file watching or incremental import.
+
+`Ledger` isolates its SQLite connection in an actor and uses transactional upserts
+keyed by source and event identity. A repeated identity replaces its entire
+normalized payload; a failed batch rolls back. Entries absent from a later scan
+are retained, not deleted. The database uses WAL, schema version 1, bound values,
+and owner-only database-file permissions, and rejects newer storage versions.
+Persistent notification keys share the ledger but are separate from usage rows.
+
+`BudgetEngine` resolves calendar reset days forward with explicit skipped/repeated
+time policies and prices half-open usage windows using decimal arithmetic. See
+[pricing](pricing.md) for DST rules and the current warning-gated forecast limitation.
+
+## Notifications
+
+Portable `BudgetAlerts` decides whether an eligible scan crosses 80% or 100% of
+the recorded estimate. It establishes silent baselines, rejects unknown warning
+types, and generates stable local deduplication keys. macOS-only
+`BudgetNotifications` handles opt-in permission, checks and records keys in the
+ledger before delivery, and submits local `UserNotifications` requests. Configuration
+revisions prevent stale scan results from issuing alerts for changed settings.
+
+The OS payload contains generic threshold text and a random request ID, not local
+deduplication keys or source/provider/model identifiers. Permission and delivery
+failures do not trigger historical catch-up. This integration is implemented but
+not interactively validated on a real Mac.
 
 ## Import Strategy
 

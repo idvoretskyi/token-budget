@@ -17,6 +17,11 @@ final class UsageAdaptersTests: XCTestCase {
         return directory
     }
 
+    func testCanonicalTemporaryDirectoryIsNotClassifiedAsSymlink() throws {
+        let directory = try temporaryDirectory()
+        XCTAssertEqual(try fileType(directory), .typeDirectory)
+    }
+
     private func rollout(_ lines: [String], at directory: URL, name: String = "rollout.jsonl", terminated: Bool = true) throws -> URL {
         let url = directory.appendingPathComponent(name)
         try Data((lines.joined(separator: "\n") + (terminated ? "\n" : "")).utf8).write(to: url)
