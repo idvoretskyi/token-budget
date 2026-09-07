@@ -17,21 +17,20 @@ schedule or a claim that features have shipped.
 
 ## Validation Snapshot
 
-[CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
-at `abe383f` on 2026-09-07 passed all 77 tests on both Linux and macOS 26, built and
-packaged the native release app, verified its ad-hoc signature, and uploaded the
-artifact. No interactive real-Mac validation has been completed.
-
-The shared informational-warning forecast policy, its additional test (78 total),
-the five-second packaged-process check, and upload-artifact v5 update await the
-next green CI run. See [CI evidence and limits](ci.md).
+[CI run 34158486547](https://github.com/idvoretskyi/token-budget/actions/runs/34158486547)
+at `3553876` on 2026-09-07 passed all 78 tests on both Linux and macOS 26, built and
+packaged the native release app, verified its ad-hoc signature, passed the
+five-second packaged-process smoke check, and uploaded the artifact. No interactive
+real-Mac validation or validation of a real installation with user data has been
+completed. See [CI evidence and limits](ci.md).
 
 ## Before Calling It Validated
 
-- Verify the pending 78-test suite and packaged-process smoke check on CI. Process
-  survival for five seconds is not an interactive UI test.
 - Validate launch, menu bar behavior, settings persistence, accessibility, and
-  notifications interactively on a real Mac. No such validation is recorded yet.
+  notifications interactively on a real Mac. Process survival for five seconds is
+  not an interactive UI test.
+- Validate a real installation and local usage imports without publishing user
+  data or treating synthetic compatibility tests as proof of complete history.
 - Exercise permissions, unreadable files, concurrent source writes, repeat scans,
   and malformed input without exposing private data.
 - Maintain the existing synthetic compatibility fixtures and documented format

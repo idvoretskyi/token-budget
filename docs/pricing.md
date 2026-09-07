@@ -62,7 +62,7 @@ independently, with these explicit daylight-saving policies:
 
 Portable regression tests cover these policies, subsecond boundaries, leap years,
 year rollover, and stored-zone reset times. They passed on Linux and macOS 26 in
-the [recorded 77-test CI run](ci.md), but do not replace interactive validation.
+the [recorded 78-test CI run](ci.md), but do not replace interactive validation.
 
 Changing a budget, scope, time zone, or profile changes the interpretation of the
 estimate. It does not change the provider's billing period or past invoices.
@@ -85,8 +85,9 @@ separate requirement for confirmed coverage starting at or before the window.
 
 Malformed, missing, unsupported, deferred, or otherwise incomplete imports, unknown
 warnings, and unpriced usage still suppress forecasts. User confirmation is an
-assertion, not proof of complete billing history. This policy update and its new
-regression test await the next CI run; the [verified result](ci.md) remains 77 tests.
+assertion, not proof of complete billing history. This policy's regression tests
+passed in the [verified 78-test CI run](ci.md); real installation behavior with
+user data remains unvalidated.
 
 ## Optional Alerts
 

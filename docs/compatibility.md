@@ -177,16 +177,17 @@ data only.
 
 ## Validation Evidence
 
-[CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
-at `abe383f` on 2026-09-07 passed all 77 tests, including the adapter suite, on both
+[CI run 34158486547](https://github.com/idvoretskyi/token-budget/actions/runs/34158486547)
+at `3553876` on 2026-09-07 passed all 78 tests, including the adapter suite, on both
 Linux/Swift 6.2 and macOS 26. Native release packaging, ad-hoc signature verification,
-and artifact generation also succeeded. This verifies synthetic compatibility
-tests, not interactive use with installed tools or complete real-world histories.
-No interactive real-Mac validation has been completed.
+the five-second packaged-process smoke check, and artifact upload also succeeded.
+This verifies synthetic compatibility tests, not interactive use with installed
+tools or complete real-world histories. No interactive real-Mac validation or
+validation of a real installation with user data has been completed.
 
 The current shared `UsageCoverage` policy treats coverage, canonical-step, and
 recorded-attribution notices as informational while keeping them visible. Actual
 import-gap and unknown warnings still suppress forecasts and alerts. Forecasts
 also require confirmed full-period coverage, 24 elapsed hours, and fully priced
-usage. The policy update and added test await CI; the verified count remains 77.
-See [pricing](pricing.md) and [CI status](ci.md) for exact conditions and pending checks.
+usage. This policy's regression tests passed in the recorded run.
+See [pricing](pricing.md) and [CI status](ci.md) for exact conditions and validation limits.

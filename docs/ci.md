@@ -1,26 +1,25 @@
 # CI Environment
 
 The workflow tests portable logic on Linux and tests, builds, packages, and verifies
-a development app on macOS. The new packaged-process smoke check is not a UI test
+a development app on macOS. The packaged-process smoke check is not a UI test
 and does not replace interactive real-Mac validation.
 
 ## Validation Snapshot
 
-Verified [run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
-on **2026-09-07**, commit `abe383f3c992b2a3629ae9a97cb2804d7367ae25`:
+Verified [run 34158486547](https://github.com/idvoretskyi/token-budget/actions/runs/34158486547)
+on **2026-09-07**, commit `35538763923054c8101251b9504e04e903021217`:
 
-- All 77 tests passed with zero failures on both Linux/Swift 6.2 and macOS 26,
-  including the adapter suite.
+- All 78 tests passed with zero failures on both Linux/Swift 6.2 and macOS 26,
+  including the adapter suite and shared informational-warning forecast policy.
 - The native product built, the release app was packaged at `dist/TokenBudget.app`,
   and strict ad-hoc signature verification passed.
-- The arm64 development ZIP was generated and uploaded as artifact `10031715299`,
-  subject to seven-day retention.
+- The packaged process survived the five-second smoke check.
+- The arm64 development ZIP was generated and uploaded with upload-artifact v5 as
+  artifact `10031796936`, subject to seven-day retention.
 
-Subsequent working-tree changes share the informational-warning allowlist between
-forecasts and alerts and add one regression test, bringing the suite to 78 tests.
-**The 78-test result is pending CI**, not part of the verified run above. The new
-five-second packaged-process smoke check and upload-artifact v5 update also await
-a green run. There has been no interactive real-Mac validation.
+These results cover synthetic tests and hosted-runner checks. There has been no
+interactive real-Mac validation or validation of a real installation with user
+data. Process survival does not establish that the UI or notifications work.
 
 ## Runner Selection
 
@@ -90,10 +89,10 @@ a packaging failure. `ditto` creates a ZIP preserving bundle metadata before
 upload. Only that ZIP is uploaded, with seven-day retention, not the workspace,
 test logs, or a user's local data.
 
-The pending smoke step starts `dist/TokenBudget.app/Contents/MacOS/TokenBudget`,
+The smoke step starts `dist/TokenBudget.app/Contents/MacOS/TokenBudget`,
 waits five seconds, checks process existence with `kill -0`, and terminates it on
 step exit. This catches immediate process exits, not broken UI, settings, imports,
-permissions, or notification delivery. It was not present in the verified run.
+permissions, or notification delivery. It passed in the verified run above.
 
 A passing ad-hoc signature check is an integrity check, not Developer ID signing,
 notarization, a Gatekeeper assessment, or proof the app works interactively.

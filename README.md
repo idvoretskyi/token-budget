@@ -7,12 +7,13 @@ network requests, telemetry, backend, or API credentials.
 ## Experimental Status
 
 This is an early MVP, not a production-validated financial tool. Native build and
-packaging are verified: [CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
-at `abe383f` passed all 77 tests on both Linux and macOS 26, packaged the release
-app, verified its ad-hoc signature, and generated an artifact on 2026-09-07.
-**No interactive real-Mac validation has been completed.** Permissions, menu bar
-behavior, and notification delivery still need interactive testing. Subsequent
-forecast-policy and process-smoke changes await CI; see [CI status](docs/ci.md).
+packaging are verified: [CI run 34158486547](https://github.com/idvoretskyi/token-budget/actions/runs/34158486547)
+at `3553876` passed all 78 tests on both Linux and macOS 26, packaged the release
+app, verified its ad-hoc signature, passed a five-second packaged-process smoke
+check, and uploaded an artifact on 2026-09-07. **No interactive real-Mac or real
+installation validation with user data has been completed.** The smoke check is
+not a UI test; permissions, menu bar behavior, and notification delivery still
+need interactive testing. See [CI evidence and limits](docs/ci.md).
 
 Estimates are not provider bills, subscription allowances, prepaid balances, or
 enforced spending caps. Missing history, unsupported log formats, unknown prices,
@@ -41,8 +42,8 @@ coverage; any coverage start is a user assertion, not independent verification.
 The current forecast policy requires confirmed coverage beginning at or before the
 period start, at least 24 elapsed hours, fully priced usage, and no actual import
 problems or unknown warnings. Informational coverage, canonical-step, and recorded
-attribution notices remain visible but do not suppress it. This policy update
-awaits CI verification. See [pricing and alert semantics](docs/pricing.md).
+attribution notices remain visible but do not suppress it. See
+[pricing and alert semantics](docs/pricing.md).
 
 ### Initial Setup
 
