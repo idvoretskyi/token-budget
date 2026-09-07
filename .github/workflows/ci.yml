@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Portable tests (Swift 6.2)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    container:
+      image: swift:6.2-noble@sha256:29b983751c605c2d3102d2ab93438c6e0cadf110d9d2aa6e929b6dec9dcb7cbc
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install SQLite development dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
+      - name: Log toolchain
+        run: |
+          swift --version
+          pkg-config --modversion sqlite3
+          uname -sm
+      - name: Test portable targets (UI excluded by manifest)
+        run: swift test
+
+  macos:
+    name: Native macOS 26 build and package
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      # Installed path verified in the official macos-26 arm64 image documentation.
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify and log native toolchain
+        run: |
+          test -d "$DEVELOPER_DIR"
+          sw_vers
+          uname -m
+          xcodebuild -version
+          xcrun swift --version
+          xcrun --sdk macosx --show-sdk-version
+          xcrun --sdk macosx --show-sdk-path
+          os_version="$(sw_vers -productVersion)"
+          sdk_version="$(xcrun --sdk macosx --show-sdk-version)"
+          xcode_version="$(xcodebuild -version)"
+          [[ "${os_version%%.*}" -ge 26 ]]
+          [[ "${sdk_version%%.*}" -ge 26 ]]
+          [[ "$xcode_version" == Xcode\ 26.* ]]
+      - name: Test
+        run: swift test
+      - name: Build native product
+        run: swift build --product TokenBudget
+      - name: Package development app
+        run: bash scripts/build-app.sh
+      - name: Verify bundle signature and archive
+        run: |
+          test -d dist/TokenBudget.app
+          codesign --verify --deep --strict --verbose=2 dist/TokenBudget.app
+          codesign --display --verbose=2 dist/TokenBudget.app
+          ditto -c -k --sequesterRsrc --keepParent dist/TokenBudget.app dist/TokenBudget-macos-arm64.zip
+      - name: Upload development bundle only
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: TokenBudget-macos-arm64-${{ github.sha }}
+          path: dist/TokenBudget-macos-arm64.zip
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

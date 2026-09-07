@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest a focused improvement to the local-only estimator.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Keep examples synthetic and non-identifying. No raw logs, usage databases,
+        session content, credentials, or personal paths. Runtime networking,
+        telemetry, and billing-account integration are outside the current scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user need is not met? Avoid private or organization-specific context.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior and alternatives
+      description: Explain how the change preserves local-only operation and honest estimate semantics.
+    validations:
+      required: true
