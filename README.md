@@ -81,7 +81,7 @@ binary or a production release. Do not disable Gatekeeper to run an untrusted bu
 ### Linux Checks
 
 Swift 6 can test the platform-independent core and adapters on Linux. CI uses the
-official Swift 6.2 Ubuntu Noble container. Install SQLite development headers and
+official Swift 6.3.3 Ubuntu Noble container. Install SQLite development headers and
 `pkg-config` first (Ubuntu/Debian):
 
 ```bash
@@ -94,6 +94,10 @@ The package excludes the SwiftUI app target on Linux. Passing these tests does n
 validate the macOS app, notifications, bundle, or code signing.
 
 ## Documentation
+
+Dependabot checks action pins and the CI container daily and opens update PRs.
+Updates are reviewed and tested, not automatically merged. See the
+[maintenance policy](docs/ci.md#dependency-maintenance) for toolchain boundaries.
 
 - [Architecture](docs/architecture.md)
 - [Privacy](docs/privacy.md)

@@ -35,7 +35,7 @@ notarization. The five-second CI process check has passed but is not a UI test o
 validation of a real installation with user data.
 
 On Linux, install Swift 6, `libsqlite3-dev`, and `pkg-config`, then run `swift test`.
-CI uses Swift 6.2 on Ubuntu Noble. Linux intentionally excludes the SwiftUI app;
+CI uses Swift 6.3.3 on Ubuntu Noble. Linux intentionally excludes the SwiftUI app;
 you do not need a Mac to contribute portable tests or documentation.
 
 For import changes, test repeated scans, missing and malformed fields, cumulative

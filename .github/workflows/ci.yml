@@ -14,30 +14,25 @@ concurrency:
 
 jobs:
   linux:
-    name: Portable tests (Swift 6.2)
+    name: Portable tests (Swift)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    container:
-      image: swift:6.2-noble@sha256:29b983751c605c2d3102d2ab93438c6e0cadf110d9d2aa6e929b6dec9dcb7cbc
     defaults:
       run:
         shell: bash
     steps:
       - name: Check out source
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Install SQLite development dependencies
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends libsqlite3-dev pkg-config
-      - name: Log toolchain
-        run: |
-          swift --version
-          pkg-config --modversion sqlite3
-          uname -sm
+      - name: Build pinned test environment
+        run: docker build --pull --tag token-budget-ci .github/ci
       - name: Test portable targets (UI excluded by manifest)
-        run: swift test
+        run: |
+          docker run --rm --network none \
+            --mount "type=bind,source=$GITHUB_WORKSPACE,target=/workspace,readonly" \
+            token-budget-ci bash -lc \
+            'swift --version && pkg-config --modversion sqlite3 && uname -sm && swift test --scratch-path /tmp/token-budget-build'
 
   macos:
     name: Native macOS 26 build and package
@@ -45,13 +40,13 @@ jobs:
     timeout-minutes: 30
     env:
       # Installed path verified in the official macos-26 arm64 image documentation.
-      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
     defaults:
       run:
         shell: bash
     steps:
       - name: Check out source
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Verify and log native toolchain
@@ -89,10 +84,11 @@ jobs:
           sleep 5
           kill -0 "$app_pid"
       - name: Upload development bundle only
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: TokenBudget-macos-arm64-${{ github.sha }}
           path: dist/TokenBudget-macos-arm64.zip
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+          archive: true

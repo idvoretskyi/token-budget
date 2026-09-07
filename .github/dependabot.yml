@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor-patch:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: "deps"
+
+  # CI builds this Dockerfile, so its FROM pin is the single toolchain source.
+  - package-ecosystem: docker
+    directory: /.github/ci
+    schedule:
+      interval: daily
+      time: "07:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    groups:
+      containers-minor-patch:
+        update-types:
+          - minor
+          - patch
+    commit-message:
+      prefix: "deps"
