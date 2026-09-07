@@ -11,7 +11,11 @@ import Glibc
 
 final class UsageAdaptersTests: XCTestCase {
     private func temporaryDirectory() throws -> URL {
-        let directory = FileManager.default.temporaryDirectory.resolvingSymlinksInPath().appendingPathComponent(UUID().uuidString)
+        // Foundation resolvingSymlinksInPath strips /private on macOS; realpath
+        // preserves the actual ancestor chain needed by the symlink safety tests.
+        let canonical = try XCTUnwrap(realpath(FileManager.default.temporaryDirectory.path, nil))
+        defer { free(canonical) }
+        let directory = URL(fileURLWithPath: String(cString: canonical)).appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         return directory
