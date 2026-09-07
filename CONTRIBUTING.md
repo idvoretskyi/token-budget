@@ -31,7 +31,8 @@ The package script produces `dist/TokenBudget.app`; native build, packaging, and
 ad-hoc signature verification have passed in the [recorded CI run](docs/ci.md).
 Use `open dist/TokenBudget.app` to begin manual testing of your local build.
 Packaging and code-signature verification do not test interactive behavior or
-notarization. The new five-second CI process check is also not a UI test.
+notarization. The five-second CI process check has passed but is not a UI test or
+validation of a real installation with user data.
 
 On Linux, install Swift 6, `libsqlite3-dev`, and `pkg-config`, then run `swift test`.
 CI uses Swift 6.2 on Ubuntu Noble. Linux intentionally excludes the SwiftUI app;
