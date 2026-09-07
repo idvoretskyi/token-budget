@@ -1,0 +1,14 @@
+.build/
+.swiftpm/
+dist/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+*.sqlite*
+*.jsonl
+!Tests/Fixtures/*.jsonl
