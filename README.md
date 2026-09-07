@@ -6,13 +6,13 @@ network requests, telemetry, backend, or API credentials.
 
 ## Experimental Status
 
-This is an early MVP, not a production-validated financial tool. **No interactive
-real-Mac validation has been completed.** The reported validation snapshot on
-2026-09-07 is 76 portable tests passing locally and macOS CI compilation passing.
-All adapter tests in that macOS run were skipped because of a path-symlink bug;
-the fix and a rerun are still pending verification. Native packaging and signature
-verification are not confirmed. Permissions, menu bar behavior, and notification
-delivery still need interactive testing. See [CI status](docs/ci.md).
+This is an early MVP, not a production-validated financial tool. Native build and
+packaging are verified: [CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
+at `abe383f` passed all 77 tests on both Linux and macOS 26, packaged the release
+app, verified its ad-hoc signature, and generated an artifact on 2026-09-07.
+**No interactive real-Mac validation has been completed.** Permissions, menu bar
+behavior, and notification delivery still need interactive testing. Subsequent
+forecast-policy and process-smoke changes await CI; see [CI status](docs/ci.md).
 
 Estimates are not provider bills, subscription allowances, prepaid balances, or
 enforced spending caps. Missing history, unsupported log formats, unknown prices,
@@ -38,10 +38,11 @@ notifications off. Notification permission is requested only when enabling the
 preference and applying settings. Local records cannot prove complete billing-period
 coverage; any coverage start is a user assertion, not independent verification.
 
-Forecasting is currently effectively disabled for real adapter imports: every
-importer warning suppresses it, including the coverage notice both adapters always
-emit. Confirming coverage does not override this conservative limitation. See
-[pricing and alert semantics](docs/pricing.md).
+The current forecast policy requires confirmed coverage beginning at or before the
+period start, at least 24 elapsed hours, fully priced usage, and no actual import
+problems or unknown warnings. Informational coverage, canonical-step, and recorded
+attribution notices remain visible but do not suppress it. This policy update
+awaits CI verification. See [pricing and alert semantics](docs/pricing.md).
 
 ### Initial Setup
 
@@ -66,15 +67,15 @@ its developer tools. From the repository root:
 swift test
 swift build --product TokenBudget
 bash scripts/build-app.sh
+open dist/TokenBudget.app
 ```
 
-The packaging script targets `dist/TokenBudget.app`. Treat this as a planned local
-development bundle until packaging checks have succeeded on macOS, not as an
-available signed release.
-CI is configured to verify its code signature and upload a ZIP for seven days.
-An ad-hoc signature does not establish
-publisher identity or notarization, and the CI artifact is not a universal binary
-or a supported distribution. Do not disable Gatekeeper to run an untrusted build.
+The script builds a release-configuration app at `dist/TokenBudget.app` and signs
+it ad hoc. The `open` command launches your local development build for manual
+testing; interactive behavior is not yet validated. CI verifies the signature and
+uploads a ZIP with seven-day retention. An ad-hoc signature does not establish
+publisher identity or notarization, and the arm64 CI artifact is not a universal
+binary or a production release. Do not disable Gatekeeper to run an untrusted build.
 
 ### Linux Checks
 

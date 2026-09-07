@@ -56,7 +56,12 @@ Persistent notification keys share the ledger but are separate from usage rows.
 
 `BudgetEngine` resolves calendar reset days forward with explicit skipped/repeated
 time policies and prices half-open usage windows using decimal arithmetic. See
-[pricing](pricing.md) for DST rules and the current warning-gated forecast limitation.
+[pricing](pricing.md) for DST rules and conservative forecast eligibility.
+`UsageCoverage` supplies the shared informational-warning allowlist for forecasting
+and alerts. Notices remain visible; actual import problems and unknown warnings
+block both. Forecasts additionally require confirmed full-period coverage and at
+least 24 elapsed hours. This shared-policy update awaits CI verification beyond
+the [recorded 77-test run](ci.md).
 
 ## Notifications
 

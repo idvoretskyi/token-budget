@@ -81,8 +81,15 @@ jobs:
           codesign --verify --deep --strict --verbose=2 dist/TokenBudget.app
           codesign --display --verbose=2 dist/TokenBudget.app
           ditto -c -k --sequesterRsrc --keepParent dist/TokenBudget.app dist/TokenBudget-macos-arm64.zip
+      - name: Smoke test packaged process
+        run: |
+          dist/TokenBudget.app/Contents/MacOS/TokenBudget &
+          app_pid=$!
+          trap 'kill "$app_pid" 2>/dev/null || true' EXIT
+          sleep 5
+          kill -0 "$app_pid"
       - name: Upload development bundle only
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: TokenBudget-macos-arm64-${{ github.sha }}
           path: dist/TokenBudget-macos-arm64.zip

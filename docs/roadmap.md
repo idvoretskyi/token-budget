@@ -17,17 +17,19 @@ schedule or a claim that features have shipped.
 
 ## Validation Snapshot
 
-As reported on 2026-09-07, 76 portable tests passed locally and macOS CI compilation
-passed. All macOS adapter tests in that run were skipped due to a path-symlink bug;
-the fix needs a verified rerun with those tests actually executing. This is not a
-passing native test suite or packaging result. Native packaging/signature checks
-and interactive real-Mac validation are not confirmed.
+[CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
+at `abe383f` on 2026-09-07 passed all 77 tests on both Linux and macOS 26, built and
+packaged the native release app, verified its ad-hoc signature, and uploaded the
+artifact. No interactive real-Mac validation has been completed.
+
+The shared informational-warning forecast policy, its additional test (78 total),
+the five-second packaged-process check, and upload-artifact v5 update await the
+next green CI run. See [CI evidence and limits](ci.md).
 
 ## Before Calling It Validated
 
-- Rerun macOS 26+ tests without unintended adapter skips, then confirm native
-  product build, packaging, and signature-verification results.
-- Verify the planned `dist/TokenBudget.app` output meets the CI packaging contract.
+- Verify the pending 78-test suite and packaged-process smoke check on CI. Process
+  survival for five seconds is not an interactive UI test.
 - Validate launch, menu bar behavior, settings persistence, accessibility, and
   notifications interactively on a real Mac. No such validation is recorded yet.
 - Exercise permissions, unreadable files, concurrent source writes, repeat scans,
@@ -46,9 +48,8 @@ and interactive real-Mac validation are not confirmed.
   and recovery semantics, justified by profiling and regression tests.
 - Broader source-format compatibility backed by synthetic fixtures.
 - Improved local price-profile editing and provenance, without a runtime price feed.
-- Review forecast warning policy without weakening uncertainty reporting. Currently
-  every importer warning suppresses forecasts, including the coverage notice both
-  adapters always emit, so real adapter imports effectively cannot show forecasts.
+- Validate forecast presentation with confirmed coverage and informational notices,
+  while keeping actual import problems, missing prices, and unknown warnings blocking.
 - Documented distribution, architecture support, Developer ID signing, and
   notarization. A CI development ZIP is not a notarized release.
 

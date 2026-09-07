@@ -1,20 +1,26 @@
 # CI Environment
 
-The workflow is configured to test portable logic on Linux and test, build,
-package, and verify a development app on macOS. It does not launch the UI or
-replace interactive real-Mac validation.
+The workflow tests portable logic on Linux and tests, builds, packages, and verifies
+a development app on macOS. The new packaged-process smoke check is not a UI test
+and does not replace interactive real-Mac validation.
 
 ## Validation Snapshot
 
-Reported on **2026-09-07**: 76 portable tests passed locally, and macOS CI
-compilation passed. All adapter tests in that macOS run were skipped due to a
-path-symlink bug. A fix is in progress; adapter validation requires a rerun in which
-the tests actually execute. Compilation success is not a passing native adapter
-suite, and does not establish that subsequent source changes have been compiled.
+Verified [run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
+on **2026-09-07**, commit `abe383f3c992b2a3629ae9a97cb2804d7367ae25`:
 
-Native packaging, code-signature verification, and artifact creation are **not yet
-confirmed**. There has been no interactive real-Mac validation. These results are
-a reported snapshot, not a new test run performed for this documentation update.
+- All 77 tests passed with zero failures on both Linux/Swift 6.2 and macOS 26,
+  including the adapter suite.
+- The native product built, the release app was packaged at `dist/TokenBudget.app`,
+  and strict ad-hoc signature verification passed.
+- The arm64 development ZIP was generated and uploaded as artifact `10031715299`,
+  subject to seven-day retention.
+
+Subsequent working-tree changes share the informational-warning allowlist between
+forecasts and alerts and add one regression test, bringing the suite to 78 tests.
+**The 78-test result is pending CI**, not part of the verified run above. The new
+five-second packaged-process smoke check and upload-artifact v5 update also await
+a green run. There has been no interactive real-Mac validation.
 
 ## Runner Selection
 
@@ -50,18 +56,19 @@ an unverified example:
 | Action | Queried ref | Verified commit |
 | --- | --- | --- |
 | `actions/checkout` | `v5` | `fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09` |
-| `actions/upload-artifact` | `v4` | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
+| `actions/upload-artifact` | `v5` | `330a01c490aca151604b8cf639adc76d48f6c5d4` |
 
 To review future updates:
 
 ```bash
 gh api repos/actions/checkout/commits/v5 --jq .sha
-gh api repos/actions/upload-artifact/commits/v4 --jq .sha
+gh api repos/actions/upload-artifact/commits/v5 --jq .sha
 ```
 
 Checkout was updated to this verified v5 commit to avoid its Node 20 deprecation
-warning; the pinned action declares `runs.using: node24`. This does not imply that
-every other action uses Node 24: the upload-artifact pin remains unchanged.
+warning; the pinned action declares `runs.using: node24`. The upload-artifact v5
+commit was separately verified through `gh`; its pinned `action.yml` still declares
+`runs.using: node20`, so a v5 label alone does not establish a Node 24 migration.
 
 Tags can move; review the upstream changes before replacing a pin. Container
 digest pins also need deliberate updates to receive toolchain and OS fixes.
@@ -73,9 +80,9 @@ is no `pull_request_target`, secret-dependent signing, release publishing, or
 write permission. Pull requests run on hosted disposable runners. No real usage
 fixtures or private logs belong in CI.
 
-The packaging contract is `bash scripts/build-app.sh` producing
-`dist/TokenBudget.app`. The script targets this path, but successful bundle creation
-and verification still need a native run.
+The packaging contract is `bash scripts/build-app.sh` producing the
+release-configuration `dist/TokenBudget.app`. Bundle creation and signature
+verification passed in the recorded run above.
 
 The workflow requires the bundle and verifies it with
 `codesign --verify --deep --strict`; it does not re-sign an invalid bundle to hide
@@ -83,6 +90,11 @@ a packaging failure. `ditto` creates a ZIP preserving bundle metadata before
 upload. Only that ZIP is uploaded, with seven-day retention, not the workspace,
 test logs, or a user's local data.
 
+The pending smoke step starts `dist/TokenBudget.app/Contents/MacOS/TokenBudget`,
+waits five seconds, checks process existence with `kill -0`, and terminates it on
+step exit. This catches immediate process exits, not broken UI, settings, imports,
+permissions, or notification delivery. It was not present in the verified run.
+
 A passing ad-hoc signature check is an integrity check, not Developer ID signing,
-notarization, a Gatekeeper assessment, or proof the app launches. Native execution
-and distribution remain validation gaps until separately demonstrated.
+notarization, a Gatekeeper assessment, or proof the app works interactively.
+Interactive validation and production distribution remain open work.

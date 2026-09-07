@@ -29,7 +29,7 @@ public struct BudgetAlerts: Sendable {
               let summary, summary.unpricedCount == 0,
               !summary.spent.isNaN, summary.spent >= 0,
               !settings.budget.amount.isNaN, settings.budget.amount > 0,
-              summary.warnings.allSatisfy(Self.isInformationalWarning) else {
+               summary.warnings.allSatisfy(UsageCoverage.isInformationalWarning) else {
             resetBaseline()
             return []
         }
@@ -73,7 +73,11 @@ public struct BudgetAlerts: Sendable {
         fields.map { "\($0.utf8.count):\($0)" }.joined()
     }
 
-    private static func isInformationalWarning(_ warning: String) -> Bool {
+}
+
+public enum UsageCoverage {
+    /// Disclaimers remain visible but are not evidence of a specific import gap.
+    public static func isInformationalWarning(_ warning: String) -> Bool {
         if warning == "Full-period history has not been confirmed; recorded usage may be incomplete." {
             return true
         }

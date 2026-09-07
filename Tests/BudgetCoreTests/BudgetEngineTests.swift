@@ -215,7 +215,18 @@ final class BudgetEngineTests: XCTestCase {
         }
     }
 
-    func testAnyImportWarningSuppressesForecastAndWarningsAreSortedAndDeduplicated() throws {
+    func testInformationalNoticesRemainVisibleWithoutSuppressingConfirmedForecast() throws {
+        let notices = ["OpenCode: Local usage records do not prove complete billing coverage.",
+                       "OpenCode: Only canonical OpenCode step-finish usage is imported; message and session totals are not added."]
+        let result = try BudgetEngine.summarize(events: [fixtureEvent()], settings: fixtureSettings(), at: now, warnings: notices)
+        XCTAssertNotNil(result.forecast)
+        XCTAssertEqual(result.warnings, notices.sorted())
+        let blocked = try BudgetEngine.summarize(events: [fixtureEvent()], settings: fixtureSettings(), at: now,
+                                                warnings: notices + ["OpenCode: Malformed or invalid usage records were skipped."])
+        XCTAssertNil(blocked.forecast)
+    }
+
+    func testImportProblemSuppressesForecastAndWarningsAreSortedAndDeduplicated() throws {
         let warnings = ["Synthetic warning Z", "Synthetic warning A", "Synthetic warning Z"]
         let summary = try BudgetEngine.summarize(events: [fixtureEvent()], settings: fixtureSettings(), at: now, warnings: warnings)
         XCTAssertNil(summary.forecast)

@@ -27,9 +27,11 @@ bash scripts/build-app.sh
 codesign --verify --deep --strict --verbose=2 dist/TokenBudget.app
 ```
 
-The package script targets `dist/TokenBudget.app`; this output still needs native
-validation. Packaging and code-signature verification do not test launch behavior
-or notarization.
+The package script produces `dist/TokenBudget.app`; native build, packaging, and
+ad-hoc signature verification have passed in the [recorded CI run](docs/ci.md).
+Use `open dist/TokenBudget.app` to begin manual testing of your local build.
+Packaging and code-signature verification do not test interactive behavior or
+notarization. The new five-second CI process check is also not a UI test.
 
 On Linux, install Swift 6, `libsqlite3-dev`, and `pkg-config`, then run `swift test`.
 CI uses Swift 6.2 on Ubuntu Noble. Linux intentionally excludes the SwiftUI app;

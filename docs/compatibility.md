@@ -173,9 +173,20 @@ or physical complete JSONL lines, including irrelevant/invalid records.
 
 All adapters are synchronous, have no shared mutable state, and are suitable for
 calling off the UI actor under Swift 6. Tests use XCTest and synthetic temporary
-data only. The review fixes were checked with Swift 6.2.4 in an isolated Docker
-container: Codex/shared support passed Swift 6 type-checking, and OpenCode/tests
-passed syntax parsing. Running the adapter XCTest suite was blocked before
-adapter compilation by missing `sqlite3.h` in that image. Full test execution
-remains delegated to the main agent's SQLite-equipped Docker environment; there
-is no native Swift toolchain in this editing environment.
+data only.
+
+## Validation Evidence
+
+[CI run 34158262112](https://github.com/idvoretskyi/token-budget/actions/runs/34158262112)
+at `abe383f` on 2026-09-07 passed all 77 tests, including the adapter suite, on both
+Linux/Swift 6.2 and macOS 26. Native release packaging, ad-hoc signature verification,
+and artifact generation also succeeded. This verifies synthetic compatibility
+tests, not interactive use with installed tools or complete real-world histories.
+No interactive real-Mac validation has been completed.
+
+The current shared `UsageCoverage` policy treats coverage, canonical-step, and
+recorded-attribution notices as informational while keeping them visible. Actual
+import-gap and unknown warnings still suppress forecasts and alerts. Forecasts
+also require confirmed full-period coverage, 24 elapsed hours, and fully priced
+usage. The policy update and added test await CI; the verified count remains 77.
+See [pricing](pricing.md) and [CI status](ci.md) for exact conditions and pending checks.

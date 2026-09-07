@@ -61,24 +61,32 @@ independently, with these explicit daylight-saving policies:
   may have 167 or 169 hours, and calendar months vary in length.
 
 Portable regression tests cover these policies, subsecond boundaries, leap years,
-year rollover, and stored-zone reset times. They do not replace native validation.
+year rollover, and stored-zone reset times. They passed on Linux and macOS 26 in
+the [recorded 77-test CI run](ci.md), but do not replace interactive validation.
 
 Changing a budget, scope, time zone, or profile changes the interpretation of the
 estimate. It does not change the provider's billing period or past invoices.
 
-## Forecast Limitation
+## Forecast Policy
 
 The core can extrapolate `spent * periodDuration / elapsedDuration` only when the
 user-confirmed coverage start is at or before the period start, at least 86,400
-seconds have elapsed, and the summary has no warnings. It uses actual elapsed and
-period durations, including DST, rather than a fixed-length week or month.
+seconds (24 hours) have elapsed, and selected usage is fully priced with no actual
+import problems or unknown warnings. It uses actual elapsed and period durations,
+including DST, rather than a fixed-length week or month.
 
-**Forecasts are currently effectively disabled for real adapter imports.** The app
-passes all importer warnings into the summary, and both adapters always emit the
-notice that local records do not prove complete billing coverage. That notice
-alone suppresses a forecast, even with confirmed coverage and fully priced usage.
-There is no override or informational-warning exception for forecasting. The core
-formula and its tests are not evidence of a usable end-to-end forecasting feature.
+The current implementation shares `UsageCoverage.isInformationalWarning` with
+alerts. Its exact allowlist permits the general local-coverage disclaimer,
+OpenCode's canonical step-finish notice, and Codex's recorded-model-attribution
+notice, including source-prefixed forms. These notices remain visible; they are
+not evidence of a specific import gap and do not by themselves suppress a forecast.
+The unconfirmed-history disclaimer is also informational, but does not bypass the
+separate requirement for confirmed coverage starting at or before the window.
+
+Malformed, missing, unsupported, deferred, or otherwise incomplete imports, unknown
+warnings, and unpriced usage still suppress forecasts. User confirmation is an
+assertion, not proof of complete billing history. This policy update and its new
+regression test await the next CI run; the [verified result](ci.md) remains 77 tests.
 
 ## Optional Alerts
 
@@ -90,9 +98,10 @@ not a forecast, bill, or remaining allowance.
 The first eligible scan after startup, configuration/period changes, or a rejected
 summary establishes a silent baseline. Already reached thresholds are consumed
 without historical alerts. Missing prices, failed scans, unavailable estimates,
-and non-allowlisted warnings suppress alerts and reset that baseline. Unlike the
-forecast policy, alerts allow an exact list of informational coverage and
-attribution notices; unknown warnings fail closed.
+and non-allowlisted warnings suppress alerts and reset that baseline. Alerts and
+forecasts share the informational-warning allowlist; unknown warnings fail closed.
+Unlike forecasts, alerts do not require confirmed full-period history or 24 elapsed
+hours because they describe observed threshold crossings, not extrapolated totals.
 
 Threshold records are persisted in the local ledger for the budget, period,
 enabled sources, selection fingerprint, and threshold. They are recorded before

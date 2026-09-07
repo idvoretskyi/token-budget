@@ -108,7 +108,7 @@ public enum BudgetEngine {
         let historyComplete = settings.coverageStart.map { $0 <= interval.start } ?? false
         if !historyComplete { messages.append("Full-period history has not been confirmed; recorded usage may be incomplete.") }
         let elapsed = now.timeIntervalSince(interval.start)
-        let forecast: Decimal? = historyComplete && messages.isEmpty && elapsed >= 86_400
+        let forecast: Decimal? = historyComplete && messages.allSatisfy(UsageCoverage.isInformationalWarning) && elapsed >= 86_400
             ? spent * Decimal(interval.duration) / Decimal(elapsed) : nil
         return BudgetSummary(window: interval, spent: spent, remaining: settings.budget.amount - spent,
                              bySource: totals, unpricedCount: unpriced,
