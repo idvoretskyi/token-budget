@@ -31,7 +31,8 @@ public enum BudgetEngine {
         // repeated time and next valid skipped time. Backward matching varies across
         // Foundation implementations near DST folds and monthly boundaries.
         let boundaries: [Date] = (-40...40).compactMap { offset in
-            guard let day = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
+            guard let candidate = calendar.date(byAdding: .day, value: offset, to: today) else { return nil }
+            let day = calendar.startOfDay(for: candidate)
             let matchesDay = configuration.period == .weekly
                 ? calendar.component(.weekday, from: day) == configuration.weekday
                 : calendar.component(.day, from: day) == 1

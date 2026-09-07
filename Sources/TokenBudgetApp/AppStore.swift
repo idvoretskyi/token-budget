@@ -5,6 +5,7 @@ import Observation
 import UsageAdapters
 
 struct SourceStatus: Codable, Sendable {
+    var sourcePath: String?
     var lastScan: Date?
     var lastSuccess: Date?
     var warnings: [String] = []
@@ -50,7 +51,11 @@ final class AppStore {
             if manager.fileExists(atPath: scanURL.path) {
                 do {
                     statuses = try JSONDecoder().decode([UsageSource: SourceStatus].self,
-                                                       from: Data(contentsOf: scanURL))
+                                                        from: Data(contentsOf: scanURL))
+                    for source in UsageSource.allCases {
+                        let path = source == .opencode ? settings.openCodePath : settings.codexPath
+                        if statuses[source]?.sourcePath != path { statuses[source] = SourceStatus() }
+                    }
                 } catch {
                     scanWarnings = ["Previous scan timestamps could not be read."]
                 }
@@ -75,8 +80,8 @@ final class AppStore {
     }
 
     var canShowEstimate: Bool {
-        !needsSetup && hasLoadedLedger && (settings.enabledSources.contains {
-            statuses[$0]?.lastSuccess != nil
+        !needsSetup && hasLoadedLedger && (settings.enabledSources.contains { source in
+            settings.selections.contains(where: { $0.source == source }) && statuses[source]?.lastSuccess != nil
         } || events.contains { event in
             settings.enabledSources.contains(event.source) && settings.selections.contains { $0.matches(event) }
         })
@@ -120,6 +125,11 @@ final class AppStore {
             _ = try BudgetEngine.window(for: proposed.budget, at: Date())
             try SettingsStore.save(proposed, to: settingsURL)
             try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: settingsURL.path)
+            for source in UsageSource.allCases {
+                let oldPath = source == .opencode ? settings.openCodePath : settings.codexPath
+                let newPath = source == .opencode ? proposed.openCodePath : proposed.codexPath
+                if oldPath != newPath { statuses[source] = SourceStatus() }
+            }
             settings = proposed
             error = nil
             recompute()
@@ -149,6 +159,8 @@ final class AppStore {
                 status.lastScan = Date()
                 do {
                     let path = source == .opencode ? configuration.openCodePath : configuration.codexPath
+                    if status.sourcePath != path { status = SourceStatus(lastScan: Date()) }
+                    status.sourcePath = path
                     let expanded = NSString(string: path).expandingTildeInPath
                     guard !path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                           FileManager.default.isReadableFile(atPath: expanded) else {
@@ -185,7 +197,11 @@ final class AppStore {
             switch result {
             case .success(let scan):
                 self.events = scan.events
-                self.statuses = scan.statuses
+                for source in UsageSource.allCases {
+                    let scannedPath = source == .opencode ? configuration.openCodePath : configuration.codexPath
+                    let currentPath = source == .opencode ? self.settings.openCodePath : self.settings.codexPath
+                    if scannedPath == currentPath { self.statuses[source] = scan.statuses[source] }
+                }
                 self.scanWarnings = scan.warnings
                 self.hasLoadedLedger = true
             case .failure:
@@ -212,7 +228,7 @@ final class AppStore {
             summary = try BudgetEngine.summarize(events: events, settings: settings, at: Date(), warnings: importWarnings)
         } catch {
             summary = nil
-            error = "The budget could not be calculated. Check the reset schedule, currency, and price profiles."
+            self.error = "The budget could not be calculated. Check the reset schedule, currency, and price profiles."
         }
     }
 }

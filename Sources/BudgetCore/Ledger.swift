@@ -111,8 +111,9 @@ private final class SQLiteConnection: @unchecked Sendable {
         return statement
     }
     func bind(_ text: String, to statement: OpaquePointer, index: Int32) throws {
+        guard text.utf8.count <= Int(Int32.max) else { throw BudgetError.storage }
         let result = text.withCString { value in
-            sqlite3_bind_text(statement, index, value, -1, unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+            sqlite3_bind_text(statement, index, value, Int32(text.utf8.count), unsafeBitCast(-1, to: sqlite3_destructor_type.self))
         }
         guard result == SQLITE_OK else { throw BudgetError.storage }
     }

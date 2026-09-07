@@ -216,8 +216,9 @@ struct BudgetSettings: View {
         let effectiveDate = Date(timeIntervalSince1970: floor(effectiveFrom.timeIntervalSince1970 / 60) * 60)
         guard let selection = priceSelection, validCurrency(currency), !reference.isEmpty,
               let input = decimalInput(inputRate), let read = decimalInput(readRate),
-              let write = decimalInput(writeRate), let output = decimalInput(outputRate) else {
-            message = "Choose a model, a valid ISO currency, provenance, and four nonnegative decimal rates. Enter 0 explicitly where applicable."
+              let write = decimalInput(writeRate), let output = decimalInput(outputRate),
+              [input, read, write, output].allSatisfy({ $0 <= Decimal(1_000_000_000) }) else {
+            message = "Choose a model, ISO currency, provenance, and four decimal rates between 0 and 1,000,000,000 per million tokens. Enter 0 explicitly where applicable."
             return
         }
         guard !draft.prices.contains(where: {

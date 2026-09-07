@@ -7,6 +7,55 @@ import CSQLite
 
 @MainActor
 final class LedgerTests: XCTestCase {
+    func testEmbeddedNULIdentityRemainsDistinctAndBothEventsSurviveReopen() async throws {
+        let directory = try fixtureDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("ledger.sqlite")
+        let plain = fixtureEvent(id: "synthetic", tokens: .init(input: 1))
+        let embeddedNUL = fixtureEvent(id: "synthetic\u{0}other", tokens: .init(input: 2))
+        do {
+            let ledger = try Ledger(url: url)
+            try await ledger.merge([plain, embeddedNUL])
+            try await ledger.merge([plain])
+            let events = try await ledger.events()
+            XCTAssertEqual(events, [plain, embeddedNUL])
+        }
+        let reopened = try Ledger(url: url)
+        let persisted = try await reopened.events()
+        XCTAssertEqual(persisted, [plain, embeddedNUL])
+    }
+
+    func testEmbeddedNULNotificationKeysRemainDistinctAcrossReopen() async throws {
+        let directory = try fixtureDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appendingPathComponent("ledger.sqlite")
+        let plain = "synthetic"
+        let embeddedNUL = "synthetic\u{0}other"
+        do {
+            let ledger = try Ledger(url: url)
+            try await ledger.recordNotification(key: embeddedNUL)
+            let recorded = try await ledger.notificationRecorded(key: embeddedNUL)
+            let plainRecorded = try await ledger.notificationRecorded(key: plain)
+            XCTAssertTrue(recorded)
+            XCTAssertFalse(plainRecorded)
+        }
+        do {
+            let reopened = try Ledger(url: url)
+            let recorded = try await reopened.notificationRecorded(key: embeddedNUL)
+            let plainRecorded = try await reopened.notificationRecorded(key: plain)
+            XCTAssertTrue(recorded)
+            XCTAssertFalse(plainRecorded)
+            try await reopened.recordNotification(key: plain)
+        }
+        let reopened = try Ledger(url: url)
+        let plainRecorded = try await reopened.notificationRecorded(key: plain)
+        let nulRecorded = try await reopened.notificationRecorded(key: embeddedNUL)
+        let otherRecorded = try await reopened.notificationRecorded(key: "synthetic\u{0}unrecorded")
+        XCTAssertTrue(plainRecorded)
+        XCTAssertTrue(nulRecorded)
+        XCTAssertFalse(otherRecorded)
+    }
+
     func testMergeIsIdempotentAndMutationReplacesEntirePayload() async throws {
         let directory = try fixtureDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }

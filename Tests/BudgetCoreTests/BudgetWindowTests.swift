@@ -3,6 +3,28 @@ import Foundation
 import XCTest
 
 final class BudgetWindowTests: XCTestCase {
+    func testHavanaMidnightGapDoesNotShiftMonthlyBoundariesAndNextDayIsStable() throws {
+        let configuration = BudgetConfiguration(period: .monthly, timeZoneID: "America/Havana", hour: 0)
+        let expected = DateInterval(start: fixtureDate("2024-03-01T05:00:00Z"),
+                                    end: fixtureDate("2024-04-01T04:00:00Z"))
+        for instant in ["2024-03-10T12:00:00Z", "2024-03-11T12:00:00Z"] {
+            let window = try BudgetEngine.window(for: configuration, at: fixtureDate(instant))
+            XCTAssertEqual(window, expected, instant)
+        }
+    }
+
+    func testHavanaMidnightGapUsesNextValidWeeklyResetAndNextDayIsStable() throws {
+        let configuration = BudgetConfiguration(period: .weekly, timeZoneID: "America/Havana",
+                                                weekday: 1, hour: 0)
+        // Sunday midnight is skipped; only that reset moves to 01:00 local.
+        let expected = DateInterval(start: fixtureDate("2024-03-10T05:00:00Z"),
+                                    end: fixtureDate("2024-03-17T04:00:00Z"))
+        for instant in ["2024-03-10T12:00:00Z", "2024-03-11T12:00:00Z"] {
+            let window = try BudgetEngine.window(for: configuration, at: fixtureDate(instant))
+            XCTAssertEqual(window, expected, instant)
+        }
+    }
+
     func testMondayResetAtExactBoundaryStartsNewWeek() throws {
         let configuration = BudgetConfiguration(period: .weekly, timeZoneID: "UTC")
         let monday = fixtureDate("2024-02-05T00:00:00Z")
